@@ -1,3 +1,14 @@
+# --- 1. CONFIGURACIÓN DE LIBRERÍAS (Forzada para el servidor) ---
+paquetes <- c("shiny", "bslib", "duckdb", "dplyr", "DT", "arrow", "stringr")
+
+for (pkg in paquetes) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, repos = "https://cloud.r-project.org")
+    library(pkg, character.only = TRUE)
+  }
+}
+
+
 #Instalación de paquetes necesarios shiny, bslib, duckdb, dplyr, DT
 library(shiny)
 library(bslib)
