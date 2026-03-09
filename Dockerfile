@@ -1,9 +1,8 @@
-# 1. Usamos una imagen que ya tiene R y Shiny instalado
+# Usamos la imagen oficial de Shiny
 FROM rocker/shiny:latest
 
-# 2. Instalamos las librerías de LINUX que Arrow y DuckDB necesitan para vivir
-# Sin esto, el proceso muere en silencio
-RUN apt-get update && apt-get install -y \
+# Instalamos dependencias de Linux necesarias para arrow y duckdb
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     libcurl4-openssl-dev \
     libxml2-dev \
@@ -16,18 +15,22 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. Instalamos los paquetes de R (esta vez de forma infalible)
+# Instalamos las librerías de R
 RUN R -e "install.packages(c('shiny', 'bslib', 'duckdb', 'dplyr', 'DT', 'arrow', 'stringr'), repos='https://cloud.r-project.org/')"
 
-# 4. Copiamos tus archivos al servidor
-WORKDIR /home/shinyapp
-COPY . .
+# Borramos las apps de ejemplo de Shiny (¡Adiós pingüinos!)
+RUN rm -rf /srv/shiny-server/*
 
-# 5. Permisos para que la app pueda leer los Parquet
-RUN chown -hR shiny:shiny /home/shinyapp
+# Copiamos TODOS tus archivos (app.R y la carpeta parquet_final) al servidor
+COPY . /srv/shiny-server/
 
-# 6. Puerto que exige Hugging Face
+# Configuramos el puerto 7860 que exige Hugging Face
+RUN sed -i 's/listen 3838;/listen 7860;/g' /etc/shiny-server/shiny-server.conf
+
+# Damos permisos al usuario 'shiny'
+RUN chown -R shiny:shiny /srv/shiny-server/
+
+# Exponemos el puerto y arrancamos el servidor
 EXPOSE 7860
-
-# 7. Comando para arrancar el dashboard
-CMD ["R", "-e", "shiny::runApp('/home/shinyapp/app.R', host = '0.0.0.0', port = 7860)"]
+USER shiny
+CMD ["/usr/bin/shiny-server"]
