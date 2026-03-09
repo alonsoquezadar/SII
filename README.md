@@ -1,10 +1,9 @@
 ---
-title: SII Dashboard
+title: SII Dashboard Chile
 emoji: 📈
 colorFrom: blue
 colorTo: green
-sdk: shiny
-app_file: app.R
+sdk: docker
 ---
 
 # SII
